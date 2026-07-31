@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="emerald">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Poker Night Manager</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div class="app">
+        <!-- HEADER -->
+        <header class="header">
+            <div class="brand">
+                <div class="logo-icon">♠</div>
+                <div>
+                    <h1>Poker Night</h1>
+                    <p id="headerSubtitle">Gestão Inteligente de Mesa</p>
+                </div>
+            </div>
+            
+            <div class="cash-card">
+                <span class="cash-label">EM JOGO NA MESA</span>
+                <strong id="cashTotal">R$ 0</strong>
+                <span class="player-count-badge" id="playerCountBadge">0 jogadores</span>
+            </div>
+        </header>
+
+        <!-- TOP BAR / DECORATION -->
+        <div class="poker-decoration">
+            <div class="chip-pill"><img src="assets/chips.svg" alt="Chips"><span>Live Cash Game</span></div>
+            <div class="date-badge" id="sessionDate">--/--/----</div>
+        </div>
+
+        <!-- MAIN SCREENS CONTAINER -->
+        <main class="main-content">
+            <!-- ===================== MESA ===================== -->
+            <section id="mesa" class="screen">
+                <div class="section-header">
+                    <div>
+                        <h2>Mesa Principal</h2>
+                        <small>Gerencie entradas, rebuys e saídas</small>
+                    </div>
+                    <button class="primary-btn" onclick="toggleAddPlayerBox()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <span>+ Jogador</span>
+                    </button>
+                </div>
+
+                <!-- ADD PLAYER FORM -->
+                <div id="addPlayerBox" class="add-box hidden">
+                    <div class="add-box-form">
+                        <div class="input-group">
+                            <label for="playerName">Nome do Jogador</label>
+                            <input id="playerName" placeholder="Ex: Carlinhos, Zé, Bruno..." autocomplete="off">
+                        </div>
+                        <div class="input-group short">
+                            <label for="playerBuyIn">Buy-in (R$)</label>
+                            <input id="playerBuyIn" type="number" placeholder="50" min="0">
+                        </div>
+                        <button class="confirm-add-btn" onclick="confirmAddPlayer()">Adicionar</button>
+                    </div>
+                </div>
+
+                <!-- PLAYERS CARDS LIST -->
+                <div id="playersContainer" class="players-container">
+                    <!-- Dynamic rendering -->
+                </div>
+            </section>
+
+            <!-- ===================== HISTÓRICO ===================== -->
+            <section id="historico" class="screen hidden">
+                <div class="section-header">
+                    <div>
+                        <h2>Histórico de Sessões</h2>
+                        <small>Registro de jogos anteriores e acertos</small>
+                    </div>
+                </div>
+                <div id="historyContainer" class="history-container">
+                    <!-- Dynamic rendering -->
+                </div>
+            </section>
+
+            <!-- ===================== RANKING ===================== -->
+            <section id="ranking" class="screen hidden">
+                <div class="section-header">
+                    <div>
+                        <h2>Leaderboard & Ranking</h2>
+                        <small>Classificação geral acumulada dos amigos</small>
+                    </div>
+                </div>
+
+                <!-- PODIUM top 3 -->
+                <div id="podiumContainer" class="podium-container">
+                    <!-- Dynamic Podium -->
+                </div>
+
+                <!-- RANKING LIST -->
+                <div id="rankingContainer" class="ranking-container">
+                    <!-- Dynamic rendering -->
+                </div>
+            </section>
+
+            <!-- ===================== FECHAMENTO ===================== -->
+            <section id="fechamento" class="screen hidden">
+                <div class="section-header">
+                    <div>
+                        <h2>Fechamento da Sessão</h2>
+                        <small>Informe as fichas finais para apurar o caixa</small>
+                    </div>
+                </div>
+
+                <div id="finishContainer" class="finish-container">
+                    <!-- Dynamic rendering -->
+                </div>
+
+                <!-- SUMMARY CARD -->
+                <div class="summary-card">
+                    <h3>Resumo do Caixa</h3>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <span>Buy-ins Entradas</span>
+                            <strong id="summaryBuy">R$ 0</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Rebuys Adicionais</span>
+                            <strong id="summaryRebuy">R$ 0</strong>
+                        </div>
+                        <div class="summary-item Highlight">
+                            <span>Total Em Pot</span>
+                            <strong id="summaryCash">R$ 0</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DEBT SETTLEMENT CALCULATOR ("QUEM DEVE PRA QUEM") -->
+                <div id="settlementCard" class="settlement-card">
+                    <div class="settlement-header">
+                        <h3>🤝 Quem deve para quem?</h3>
+                        <span class="settlement-badge">Pix Direto</span>
+                    </div>
+                    <p class="settlement-desc">Instruções otimizadas de pagamento ao encerrar a mesa:</p>
+                    <div id="settlementList" class="settlement-list">
+                        <p class="empty-settlement">Preencha o valor final dos jogadores acima para ver o acerto automático.</p>
+                    </div>
+                </div>
+
+                <!-- ACTIONS -->
+                <div class="finish-actions">
+                    <button class="finish-btn" onclick="finishSession()">
+                        🔒 Encerra & Salvar Sessão
+                    </button>
+                    <button class="whatsapp-btn" onclick="shareResult()">
+                        📲 Compartilhar no WhatsApp
+                    </button>
+                </div>
+            </section>
+
+            <!-- ===================== CONFIGURAÇÕES ===================== -->
+            <section id="configuracoes" class="screen hidden">
+                <div class="section-header">
+                    <div>
+                        <h2>Configurações</h2>
+                        <small>Ajustes de preferências e dados</small>
+                    </div>
+                </div>
+
+                <!-- THEME SELECTOR -->
+                <div class="config-card">
+                    <h3>🎨 Tema Visual</h3>
+                    <p>Escolha o estilo da sua mesa de jogo:</p>
+                    <div class="theme-options">
+                        <button class="theme-btn theme-emerald active" onclick="setTheme('emerald')">
+                            <span class="theme-color"></span> Emerald Felt
+                        </button>
+                        <button class="theme-btn theme-royal" onclick="setTheme('royal')">
+                            <span class="theme-color"></span> Royal Velvet
+                        </button>
+                        <button class="theme-btn theme-gold" onclick="setTheme('gold')">
+                            <span class="theme-color"></span> High Roller
+                        </button>
+                    </div>
+                </div>
+
+                <!-- DEFAULT BUY-IN CONFIG -->
+                <div class="config-card">
+                    <h3>💰 Buy-in Padrão</h3>
+                    <p>Valor inicial sugerido ao adicionar novos jogadores:</p>
+                    <div class="custom-input inline-config">
+                        <span class="currency-prefix">R$</span>
+                        <input id="defaultBuyInInput" type="number" value="50" min="0" placeholder="50">
+                        <button onclick="saveDefaultBuyIn()">Salvar</button>
+                    </div>
+                </div>
+
+                <!-- DATA MANAGEMENT -->
+                <div class="config-card">
+                    <h3>⚠️ Administração de Dados</h3>
+                    <p>Gerencie históricos e estatísticas acumuladas do app:</p>
+                    <div class="config-buttons-grid">
+                        <button class="danger-outline-btn" onclick="clearHistory()">
+                            🗑 Limpar Histórico de Sessões
+                        </button>
+                        <button class="danger-outline-btn" onclick="clearRanking()">
+                            🏆 Zerar Ranking Geral
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- FLOATING BOTTOM NAVIGATION -->
+        <nav class="bottom-menu">
+            <button class="tab-btn active" id="tab-mesa" onclick="openTab('mesa')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                <span>Mesa</span>
+            </button>
+            <button class="tab-btn" id="tab-historico" onclick="openTab('historico')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <span>Histórico</span>
+            </button>
+            <button class="tab-btn" id="tab-ranking" onclick="openTab('ranking')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+                <span>Ranking</span>
+            </button>
+            <button class="tab-btn" id="tab-fechamento" onclick="openTab('fechamento')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <span>Finalizar</span>
+            </button>
+            <button class="tab-btn" id="tab-configuracoes" onclick="openTab('configuracoes')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span>Config</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- ===================== MODAL REBUY ===================== -->
+    <div id="rebuyModal" class="modal hidden">
+        <div class="modal-box">
+            <button class="modal-close-icon" onclick="closeModal()">✕</button>
+            
+            <div class="modal-header">
+                <div class="modal-avatar" id="modalPlayerAvatar">A</div>
+                <div>
+                    <h3 id="modalPlayer">Jogador</h3>
+                    <span class="modal-subtitle">Adicionar Fichas / Rebuy</span>
+                </div>
+            </div>
+
+            <div class="modal-body">
+                <p class="section-tag">Valores Rápidos de Rebuy</p>
+                <div class="quick-buttons">
+                    <button onclick="addRebuy(20)">+R$ 20</button>
+                    <button onclick="addRebuy(50)">+R$ 50</button>
+                    <button onclick="addRebuy(100)">+R$ 100</button>
+                    <button onclick="addRebuy(200)">+R$ 200</button>
+                </div>
+
+                <p class="section-tag">Outro Valor Customizado</p>
+                <div class="custom-input">
+                    <span class="currency-prefix">R$</span>
+                    <input id="customRebuy" type="number" placeholder="Digite o valor..." min="1">
+                    <button onclick="addCustomRebuy()">Confirmar</button>
+                </div>
+
+                <div class="modal-danger-actions">
+                    <button class="edit-player-btn" onclick="openEditPlayer(selectedPlayer)">
+                        ✏️ Editar Nome do Jogador
+                    </button>
+                    <button class="danger-btn" onclick="losePlayer(selectedPlayer)">
+                        💀 Perdeu Tudo (Ficou sem fichas)
+                    </button>
+                    <button class="remove-btn" onclick="removePlayerWithRefund(selectedPlayer)">
+                        ❌ Remover da Mesa (Reembolso Buy-in)
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="cancel-btn" onclick="closeModal()">Voltar / Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== MODAL EDITAR JOGADOR ===================== -->
+    <div id="editPlayerModal" class="modal hidden">
+        <div class="modal-box">
+            <button class="modal-close-icon" onclick="closeEditPlayer()">✕</button>
+            <div class="modal-header">
+                <div class="modal-avatar" id="editPlayerAvatar">A</div>
+                <div>
+                    <h3>Editar Jogador</h3>
+                    <span class="modal-subtitle">Alterar nome ou corrigir dados</span>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="editPlayerName">Novo Nome</label>
+                    <input id="editPlayerName" placeholder="Nome do jogador" autocomplete="off">
+                </div>
+                <button class="primary-full-btn" onclick="confirmEditPlayer()" style="margin-top: 14px;">Salvar Alteração</button>
+            </div>
+            <div class="modal-footer">
+                <button class="cancel-btn" onclick="closeEditPlayer()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== MODAL RESULTADO FINAL ===================== -->
+    <div id="finalModal" class="modal hidden">
+        <div class="modal-box">
+            <div id="finalResult"></div>
+            <button class="primary-full-btn" onclick="closeFinal()">Entendido</button>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATIONS CONTAINER -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="database.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
