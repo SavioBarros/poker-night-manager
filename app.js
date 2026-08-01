@@ -34,6 +34,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const buyInInput = document.getElementById("defaultBuyInInput");
     if (buyInInput) buyInInput.value = settings.defaultBuyIn || 50;
 
+    // Fechar modais ao clicar no fundo escuro (backdrop)
+    document.querySelectorAll(".modal").forEach(modal => {
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) {
+                closeModal();
+                closeEditPlayer();
+                closeFinal();
+            }
+        });
+    });
+
     // Registro do Service Worker para PWA
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./service-worker.js')
@@ -564,6 +575,9 @@ function finishSession() {
             <div class="warning-box">
                 <h3>⚠ Faltam Valores Finais</h3>
                 <p>Preencha quanto cada jogador terminou em fichas para poder fechar o caixa.</p>
+                <button class="primary-full-btn" onclick="closeFinal()" style="margin-top: 16px;">
+                    ✏️ Preencher Valores Finais
+                </button>
             </div>
         `);
         return;
@@ -577,10 +591,13 @@ function finishSession() {
         showFinalModal(`
             <div class="warning-box">
                 <h3>⚠ Caixa não fecha!</h3>
-                <p>Total Comprado: <strong>${formatMoney(comprado)}</strong></p>
-                <p>Total Informado: <strong>${formatMoney(finalTotal)}</strong></p>
-                <p style="color: var(--loss-red); margin-top: 8px;">Diferença: <strong>${formatMoney(diferenca)}</strong></p>
-                <small style="display:block; margin-top: 8px; color: var(--text-muted)">Confira a contagem de fichas com a mesa.</small>
+                <p>Total Comprado na Mesa: <strong>${formatMoney(comprado)}</strong></p>
+                <p>Total das Fichas Informadas: <strong>${formatMoney(finalTotal)}</strong></p>
+                <p style="color: var(--loss-red); margin-top: 8px;">Diferença de Fichas: <strong>${formatMoney(diferenca)}</strong></p>
+                <small style="display:block; margin-top: 8px; color: var(--text-muted)">Confira a contagem de fichas com a mesa ou os rebuys dos jogadores.</small>
+                <button class="primary-full-btn" onclick="closeFinal()" style="margin-top: 16px;">
+                    🔍 Revisar e Corrigir Contagem
+                </button>
             </div>
         `);
         return;
