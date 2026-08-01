@@ -817,6 +817,7 @@ body {
 
 .finish-actions {
     margin-top: 20px;
+    padding-bottom: 50px;
     display: flex;
     flex-direction: column;
     gap: 10px;

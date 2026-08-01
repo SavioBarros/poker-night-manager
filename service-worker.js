@@ -1,4 +1,4 @@
-const CACHE_NAME = "poker-night-v4";
+const CACHE_NAME = "poker-night-v4.3";
 
 const FILES_TO_CACHE = [
     "./",
@@ -32,12 +32,24 @@ self.addEventListener("activate", event => {
             );
         })
     );
+    self.clients.claim();
 });
 
 self.addEventListener("fetch", event => {
-    event.respondWith(
-        caches.match(event.request).then(response => {
-            return response || fetch(event.request);
-        })
-    );
+    // Network first strategy for HTML, JS and CSS to ensure instant updates
+    if (event.request.mode === "navigate" || event.request.url.includes(".js") || event.request.url.includes(".css")) {
+        event.respondWith(
+            fetch(event.request).then(response => {
+                const clone = response.clone();
+                caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                return response;
+            }).catch(() => caches.match(event.request))
+        );
+    } else {
+        event.respondWith(
+            caches.match(event.request).then(response => {
+                return response || fetch(event.request);
+            })
+        );
+    }
 });

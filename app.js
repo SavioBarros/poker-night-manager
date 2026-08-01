@@ -473,19 +473,7 @@ function renderFinish() {
     }
 
     players.forEach((p, index) => {
-        let resultTag = "";
-        if (p.finalAmount !== null && p.finalAmount !== undefined) {
-            const res = p.finalAmount - p.bought;
-            if (res > 0) {
-                resultTag = `<span class="profit-tag">+${formatMoney(res)}</span>`;
-            } else if (res < 0) {
-                resultTag = `<span class="loss-tag">${formatMoney(res)}</span>`;
-            } else {
-                resultTag = `<span class="neutral-tag">Zero a Zero</span>`;
-            }
-        } else {
-            resultTag = `<span class="neutral-tag">Pendente</span>`;
-        }
+        let resultTag = getResultTagHtml(p);
 
         box.innerHTML += `
             <div class="finish-card">
@@ -497,13 +485,28 @@ function renderFinish() {
                            placeholder="R$ Fichas" 
                            oninput="setFinalAmount(${index}, this.value)">
                 </div>
-                <div>${resultTag}</div>
+                <div id="finish-result-tag-${index}">${resultTag}</div>
             </div>
         `;
     });
 
     updateSummary();
     renderSettlement();
+}
+
+function getResultTagHtml(p) {
+    if (p.finalAmount !== null && p.finalAmount !== undefined) {
+        const res = p.finalAmount - p.bought;
+        if (res > 0) {
+            return `<span class="profit-tag">+${formatMoney(res)}</span>`;
+        } else if (res < 0) {
+            return `<span class="loss-tag">${formatMoney(res)}</span>`;
+        } else {
+            return `<span class="neutral-tag">Zero a Zero</span>`;
+        }
+    } else {
+        return `<span class="neutral-tag">Pendente</span>`;
+    }
 }
 
 function setFinalAmount(index, value) {
@@ -515,6 +518,11 @@ function setFinalAmount(index, value) {
     } else {
         players[index].finalAmount = Number(value);
         players[index].result = players[index].finalAmount - players[index].bought;
+    }
+
+    const tagEl = document.getElementById(`finish-result-tag-${index}`);
+    if (tagEl) {
+        tagEl.innerHTML = getResultTagHtml(players[index]);
     }
 
     updateSummary();
