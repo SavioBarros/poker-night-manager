@@ -154,6 +154,16 @@ function render() {
     const countBadge = document.getElementById("playerCountBadge");
     if (countBadge) countBadge.innerText = `${players.length} jogador${players.length !== 1 ? 'es' : ''}`;
 
+    // Atualiza banner de sessão encerrada
+    const closedBanner = document.getElementById("closedSessionBanner");
+    if (closedBanner) {
+        if (sessionClosed) {
+            closedBanner.classList.remove("hidden");
+        } else {
+            closedBanner.classList.add("hidden");
+        }
+    }
+
     if (players.length === 0) {
         box.innerHTML = `
             <div class="empty-state">
@@ -322,7 +332,7 @@ function closeModal() {
 }
 
 // ======================================
-// EDITAR JOGADOR (Nome)
+// EDITAR JOGADOR & VALORES (Nome, Buy-in, Rebuys)
 // ======================================
 function openEditPlayer(index) {
     if (index === null || !players[index]) return;
@@ -333,6 +343,16 @@ function openEditPlayer(index) {
     const player = players[index];
     document.getElementById("editPlayerAvatar").innerText = player.name.charAt(0).toUpperCase();
     document.getElementById("editPlayerName").value = player.name;
+    document.getElementById("editPlayerBuyIn").value = player.buyIn;
+    document.getElementById("editPlayerRebuys").value = player.rebuyValue;
+
+    const buyInEl = document.getElementById("editPlayerBuyIn");
+    const rebuysEl = document.getElementById("editPlayerRebuys");
+    
+    if (buyInEl) buyInEl.oninput = updateEditTotalPreview;
+    if (rebuysEl) rebuysEl.oninput = updateEditTotalPreview;
+    
+    updateEditTotalPreview();
 
     const modal = document.getElementById("editPlayerModal");
     if (modal) modal.classList.remove("hidden");
@@ -340,31 +360,70 @@ function openEditPlayer(index) {
     setTimeout(() => document.getElementById("editPlayerName").focus(), 100);
 }
 
+function updateEditTotalPreview() {
+    const buyInVal = Number(document.getElementById("editPlayerBuyIn").value) || 0;
+    const rebuyVal = Number(document.getElementById("editPlayerRebuys").value) || 0;
+    const totalPreview = buyInVal + rebuyVal;
+    const previewEl = document.getElementById("editTotalPreview");
+    if (previewEl) previewEl.innerText = formatMoney(totalPreview);
+}
+
 function confirmEditPlayer() {
     if (editingPlayerIndex === null || !players[editingPlayerIndex]) return;
 
-    const input = document.getElementById("editPlayerName");
-    const newName = input.value.trim();
+    const nameInput = document.getElementById("editPlayerName");
+    const buyInInput = document.getElementById("editPlayerBuyIn");
+    const rebuysInput = document.getElementById("editPlayerRebuys");
+
+    const newName = nameInput.value.trim();
+    const newBuyIn = Number(buyInInput.value);
+    const newRebuys = Number(rebuysInput.value);
 
     if (!newName) {
         showToast("⚠️ O nome não pode ficar vazio");
         return;
     }
 
-    const oldName = players[editingPlayerIndex].name;
-    players[editingPlayerIndex].name = newName;
+    if (isNaN(newBuyIn) || newBuyIn < 0) {
+        showToast("⚠️ Digite um valor válido para o Buy-in");
+        return;
+    }
+
+    if (isNaN(newRebuys) || newRebuys < 0) {
+        showToast("⚠️ Digite um valor válido para Rebuys");
+        return;
+    }
+
+    const player = players[editingPlayerIndex];
+    const oldName = player.name;
+
+    player.name = newName;
+    player.buyIn = newBuyIn;
+    player.rebuyValue = newRebuys;
+    player.bought = newBuyIn + newRebuys;
+
+    // Recalcula resultado se valor final já preenchido
+    if (player.finalAmount !== null && player.finalAmount !== undefined) {
+        player.result = player.finalAmount - player.bought;
+    }
 
     addHistory({
         type: "edit",
         player: oldName,
-        newName: newName
+        details: `Editado: ${newName}, Buy-in: ${formatMoney(newBuyIn)}, Rebuys: ${formatMoney(newRebuys)}`
     });
 
     haptic(30);
     saveDatabase();
     closeEditPlayer();
     render();
-    showToast(`✏️ ${oldName} renomeado para ${newName}`);
+    
+    const finishScreen = document.getElementById("fechamento");
+    if (finishScreen && !finishScreen.classList.contains("hidden")) {
+        renderFinish();
+    }
+    
+    showToast(`✏️ Dados de ${newName} atualizados! (Total: ${formatMoney(player.bought)})`);
 }
 
 function closeEditPlayer() {
@@ -379,6 +438,19 @@ function closeEditPlayer() {
 function renderFinish() {
     const box = document.getElementById("finishContainer");
     if (!box) return;
+
+    // Atualiza o botão principal da tela de fechamento
+    const mainBtn = document.getElementById("finishSessionMainBtn");
+    if (mainBtn) {
+        if (sessionClosed) {
+            mainBtn.innerHTML = "♠ Iniciar Nova Sessão de Poker";
+            mainBtn.onclick = confirmNewSession;
+            mainBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
+        } else {
+            mainBtn.innerHTML = "🔒 Encerra & Salvar Sessão";
+            mainBtn.onclick = finishSession;
+        }
+    }
 
     box.innerHTML = "";
 
@@ -522,9 +594,14 @@ function finishSession() {
             <h2>🏆 Sessão Encerrada com Sucesso!</h2>
             <p>O caixa bateu perfeitamente em <strong>${formatMoney(finalTotal)}</strong>.</p>
             <p style="margin-top: 10px; font-size: 13px; color: var(--text-muted)">O ranking acumulado e histórico foram atualizados.</p>
-            <button class="primary-full-btn" onclick="newSession()" style="margin-top: 15px;">
-                ♠ Iniciar Nova Sessão
-            </button>
+            <div class="final-modal-actions" style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px;">
+                <button class="primary-full-btn" onclick="newSession()">
+                    ♠ Iniciar Nova Sessão Agora
+                </button>
+                <button class="cancel-btn" onclick="closeFinal()" style="width: 100%;">
+                    Ver Resumo da Mesa / Fechar
+                </button>
+            </div>
         </div>
     `);
 }
@@ -539,6 +616,18 @@ function showFinalModal(html) {
 function closeFinal() {
     const modal = document.getElementById("finalModal");
     if (modal) modal.classList.add("hidden");
+}
+
+function confirmNewSession() {
+    haptic(30);
+    if (sessionClosed || players.length === 0) {
+        newSession();
+        return;
+    }
+
+    if (confirm("Deseja reiniciar a mesa e iniciar uma nova sessão de poker?\n\nOs dados da mesa atual serão limpos.")) {
+        newSession();
+    }
 }
 
 function newSession() {
