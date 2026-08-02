@@ -107,6 +107,11 @@ function openTab(tabId) {
 // GERENCIAMENTO DE JOGADORES (MESA)
 // ======================================
 function toggleAddPlayerBox() {
+    if (typeof isSpectator !== 'undefined' && isSpectator) {
+        showToast("Você é apenas espectador nesta sala.", "info");
+        return;
+    }
+    
     const box = document.getElementById("addPlayerBox");
     if (box) {
         box.classList.toggle("hidden");
@@ -305,6 +310,11 @@ function render() {
 // MODAL REBUY & AÇÕES DO JOGADOR
 // ======================================
 function openRebuy(index) {
+    if (typeof isSpectator !== 'undefined' && isSpectator) {
+        showToast("Você é apenas espectador nesta sala.", "info");
+        return;
+    }
+    
     selectedPlayer = index;
     const player = players[index];
     if (!player) return;
@@ -561,6 +571,10 @@ function getResultTagHtml(p) {
 }
 
 function setFinalAmount(index, value) {
+    if (typeof isSpectator !== 'undefined' && isSpectator) {
+        showToast("Você é apenas espectador nesta sala.", "info");
+        return;
+    }
     if (!players[index]) return;
     
     if (value === "" || value === null) {
@@ -626,6 +640,10 @@ function renderSettlement() {
 
 // Finaliza Sessão
 function finishSession() {
+    if (typeof isSpectator !== 'undefined' && isSpectator) {
+        showToast("Apenas o anfitrião pode finalizar a sessão.", "info");
+        return;
+    }
     if (sessionClosed) return;
 
     const missing = players.some(p => p.finalAmount === null || p.finalAmount === undefined);
@@ -914,6 +932,10 @@ function setTheme(themeName, showNotification = true) {
 }
 
 function saveDefaultBuyIn() {
+    if (typeof isSpectator !== 'undefined' && isSpectator) {
+        showToast("Você é apenas espectador nesta sala.", "info");
+        return;
+    }
     const input = document.getElementById("defaultBuyInInput");
     const val = Number(input.value);
     if (val > 0) {
@@ -926,6 +948,10 @@ function saveDefaultBuyIn() {
 }
 
 function clearHistory() {
+    if (typeof isSpectator !== 'undefined' && isSpectator) {
+        showToast("Ação não permitida para espectadores.", "info");
+        return;
+    }
     if (confirm("Deseja realmente apagar todo o histórico de sessões encerradas?")) {
         sessions = [];
         saveDatabase();
@@ -935,6 +961,10 @@ function clearHistory() {
 }
 
 function clearRanking() {
+    if (typeof isSpectator !== 'undefined' && isSpectator) {
+        showToast("Ação não permitida para espectadores.", "info");
+        return;
+    }
     if (confirm("Deseja realmente zerar o ranking acumulado dos jogadores?")) {
         ranking = {};
         saveDatabase();
@@ -973,6 +1003,7 @@ function initDragAndDrop() {
 
 // Desktop drag handlers
 function handleDragStart(e) {
+    if (typeof isSpectator !== 'undefined' && isSpectator) return;
     draggedIndex = Number(this.dataset.index);
     this.classList.add("dragging");
     e.dataTransfer.effectAllowed = "move";
@@ -1017,6 +1048,7 @@ let touchCurrentCard = null;
 let touchClone = null;
 
 function handleTouchStart(e) {
+    if (typeof isSpectator !== 'undefined' && isSpectator) return;
     e.preventDefault();
     const card = this.closest(".draggable-card");
     if (!card) return;
@@ -1078,6 +1110,7 @@ function handleTouchEnd() {
 }
 
 function reorderPlayers(fromIndex, toIndex) {
+    if (typeof isSpectator !== 'undefined' && isSpectator) return;
     const movedPlayer = players.splice(fromIndex, 1)[0];
     players.splice(toIndex, 0, movedPlayer);
     haptic(30);
