@@ -1099,7 +1099,7 @@ function showLiveBadge(code, spectator = false) {
             badge.innerHTML = `<span class="live-dot"></span> AO VIVO`;
         }
     }
-    renderMesa();
+    render();
 }
 
 function hideLiveBadge() {
@@ -1107,7 +1107,7 @@ function hideLiveBadge() {
     if (badge) {
         badge.classList.add("hidden");
     }
-    renderMesa();
+    render();
 }
 
 function showRoomCreatedModal(code) {
@@ -1162,11 +1162,11 @@ function submitJoinRoom() {
 
 function enableSpectatorUI() {
     // Quando entra como espectador, forçamos o render para atualizar a UI
-    renderMesa();
+    render();
 }
 
 function disableSpectatorUI() {
-    renderMesa();
+    render();
 }
 
 // ======================================
