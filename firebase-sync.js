@@ -144,7 +144,7 @@ function joinLiveRoom(code) {
         }
     }).catch(err => {
         console.error(err);
-        showToast("Erro ao conectar. Verifique sua internet.", "error");
+        showToast("Erro Firebase: " + (err.message || "Verifique internet"), "error");
     });
 }
 
