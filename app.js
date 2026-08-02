@@ -635,7 +635,12 @@ function showFinalModal(html) {
     const box = document.getElementById("finalResult");
     if (box) box.innerHTML = html;
     const modal = document.getElementById("finalModal");
-    if (modal) modal.classList.remove("hidden");
+    if (modal) {
+        modal.classList.remove("hidden");
+        modal.scrollTop = 0;
+        const boxContainer = modal.querySelector(".modal-box");
+        if (boxContainer) boxContainer.scrollTop = 0;
+    }
 }
 
 function closeFinal() {
