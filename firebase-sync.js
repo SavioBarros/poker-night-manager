@@ -66,6 +66,7 @@ function syncToFirebase() {
     const state = {
         players: players,
         currentHistory: currentHistory,
+        sessionClosed: (typeof sessionClosed !== 'undefined') ? sessionClosed : false,
         timestamp: firebase.database.ServerValue.TIMESTAMP
     };
     
@@ -79,6 +80,10 @@ function closeLiveRoom() {
     if (isLiveHost && roomRef) {
         roomRef.remove(); // Deleta a sala ao fechar
     }
+    disconnectFromLiveRoom();
+}
+
+function disconnectFromLiveRoom() {
     isLiveHost = false;
     currentRoomCode = null;
     roomRef = null;
@@ -125,6 +130,9 @@ function joinLiveRoom(code) {
                     // Atualiza estado local e re-renderiza
                     players = data.players || [];
                     currentHistory = data.currentHistory || [];
+                    if (typeof sessionClosed !== 'undefined') {
+                        sessionClosed = data.sessionClosed || false;
+                    }
                     if (typeof render === 'function') render();
                     if (typeof renderHistory === 'function') renderHistory();
                     

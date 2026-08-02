@@ -680,8 +680,8 @@ function finishSession() {
         return;
     }
 
-    saveFinishedSession();
     sessionClosed = true;
+    saveFinishedSession();
 
     showFinalModal(`
         <div class="success-box">
@@ -730,6 +730,9 @@ function confirmNewSession() {
 }
 
 function newSession() {
+    if (typeof isLiveHost !== 'undefined' && isLiveHost) {
+        if (typeof disconnectFromLiveRoom === 'function') disconnectFromLiveRoom();
+    }
     players = [];
     currentHistory = [];
     sessionClosed = false;
