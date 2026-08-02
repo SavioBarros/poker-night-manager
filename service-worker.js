@@ -1,4 +1,4 @@
-const CACHE_NAME = "poker-night-v6.1";
+const CACHE_NAME = "poker-night-v6.2";
 
 const FILES_TO_CACHE = [
     "./",
@@ -6,6 +6,7 @@ const FILES_TO_CACHE = [
     "./style.css",
     "./app.js",
     "./database.js",
+    "./firebase-sync.js",
     "./manifest.json",
     "./assets/chips.svg",
     "./assets/cards.svg"

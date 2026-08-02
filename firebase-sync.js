@@ -16,10 +16,16 @@ let isLiveHost = false;
 let roomRef = null;
 
 function initFirebase() {
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
+    try {
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        db = firebase.database();
+        console.log("Firebase inicializado com sucesso.");
+    } catch (err) {
+        console.error("Erro ao inicializar Firebase:", err);
+        if (typeof showToast === 'function') showToast("Erro ao inicializar conexão ao vivo.");
     }
-    db = firebase.database();
 }
 
 function generateRoomCode() {
@@ -83,12 +89,18 @@ function closeLiveRoom() {
 // SPECTATOR MODE (Espectador)
 // ======================================
 function joinLiveRoom(code) {
+    console.log("Iniciando joinLiveRoom com código:", code);
     if (!db) initFirebase();
+    
+    if (!db) {
+        console.error("DB não inicializado, abortando join.");
+        return;
+    }
     
     const cleanCode = code.toUpperCase().trim();
     if (!cleanCode) return;
     
-    showToast("Conectando à sala...", "info");
+    showToast("Conectando à sala...");
     
     const targetRef = db.ref('rooms/' + cleanCode);
     

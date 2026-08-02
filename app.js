@@ -1143,13 +1143,20 @@ function closeJoinModal() {
 }
 
 function submitJoinRoom() {
-    const code = document.getElementById("joinRoomInput").value;
+    const inputEl = document.getElementById("joinRoomInput");
+    const code = inputEl ? inputEl.value.trim().toUpperCase() : "";
+    
+    console.log("Tentando conectar com código:", code);
+    
     if (code.length === 6) {
         if (typeof joinLiveRoom === 'function') {
             joinLiveRoom(code);
+        } else {
+            console.error("Função joinLiveRoom não encontrada!");
+            showToast("Erro interno: Função de conexão não encontrada.");
         }
     } else {
-        showToast("O código deve ter 6 caracteres.", "warning");
+        showToast("O código deve ter 6 caracteres.");
     }
 }
 
