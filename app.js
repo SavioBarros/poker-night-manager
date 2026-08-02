@@ -178,9 +178,10 @@ function render() {
     if (players.length === 0) {
         box.innerHTML = `
             <div class="empty-state">
-                <div class="empty-state-icon">♠️</div>
-                <h3>Nenhum jogador na mesa</h3>
-                <p>Clique em "+ Jogador" acima para iniciar a partida!</p>
+                <div class="empty-state-icon">🃏</div>
+                <h3>Pronto para jogar?</h3>
+                <p>Adicione o primeiro jogador para iniciar a partida!</p>
+                <button class="empty-state-cta" onclick="toggleAddPlayerBox()">♠ Adicionar Primeiro Jogador</button>
             </div>
         `;
         document.getElementById("cashTotal").innerText = formatMoney(0);
