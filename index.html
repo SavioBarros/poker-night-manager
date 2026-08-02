@@ -23,6 +23,9 @@
                 <div>
                     <h1>Poker Night</h1>
                     <p id="headerSubtitle">Gestão Inteligente de Mesa</p>
+                    <div id="liveBadge" class="live-badge hidden">
+                        <span class="live-dot"></span> AO VIVO
+                    </div>
                 </div>
             </div>
             
@@ -56,6 +59,14 @@
                         <h2>Mesa Principal</h2>
                         <small>Gerencie entradas, rebuys e saídas</small>
                     </div>
+                    
+                    <!-- NEW: Live Room Actions -->
+                    <div class="live-actions-container">
+                        <button id="btnCreateRoom" class="live-outline-btn" onclick="createLiveRoom()">
+                            📡 Iniciar Sala Ao Vivo
+                        </button>
+                    </div>
+
                     <div class="header-actions">
                         <button class="secondary-header-btn" onclick="confirmNewSession()" title="Iniciar uma nova sessão de poker">
                             ♠ Nova Sessão
@@ -350,9 +361,64 @@
         </div>
     </div>
 
+    <!-- ===================== MODAL SALA AO VIVO (HOST) ===================== -->
+    <div id="liveRoomModal" class="modal hidden">
+        <div class="modal-box">
+            <button class="modal-close-icon" onclick="closeLiveRoomModal()">✕</button>
+            <div class="modal-header">
+                <div class="modal-avatar" style="background: var(--profit-green);">📡</div>
+                <div>
+                    <h3>Mesa Ao Vivo</h3>
+                    <span class="modal-subtitle">Sua mesa está sendo transmitida!</span>
+                </div>
+            </div>
+            <div class="modal-body text-center">
+                <p>Peça para seus amigos entrarem no app e digitarem o código abaixo:</p>
+                <div class="room-code-display" id="roomCodeDisplay">XXXXXX</div>
+                
+                <p class="section-tag">Ou envie o link direto:</p>
+                <button class="whatsapp-btn" style="margin-top:0;" onclick="shareCurrentRoom()">
+                    📲 Compartilhar no WhatsApp
+                </button>
+
+                <div class="modal-danger-actions" style="margin-top: 24px;">
+                    <button class="danger-outline-btn text-center" onclick="confirmCloseLiveRoom()">
+                        🛑 Encerrar Transmissão
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== MODAL ENTRAR EM SALA ===================== -->
+    <div id="joinRoomModal" class="modal hidden">
+        <div class="modal-box">
+            <button class="modal-close-icon" onclick="closeJoinModal()">✕</button>
+            <div class="modal-header">
+                <div class="modal-avatar" style="background: var(--accent-emerald);">👁️</div>
+                <div>
+                    <h3>Entrar em Sala</h3>
+                    <span class="modal-subtitle">Acompanhe uma mesa em tempo real</span>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="input-group" style="margin-bottom: 16px;">
+                    <label>Código da Sala (6 letras/números)</label>
+                    <input id="joinRoomInput" placeholder="EX: A7X3K2" style="text-transform: uppercase; font-size: 20px; text-align: center; letter-spacing: 4px; font-weight: bold;">
+                </div>
+                <button class="primary-full-btn" onclick="submitJoinRoom()">Conectar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- TOAST NOTIFICATIONS CONTAINER -->
     <div id="toastContainer" class="toast-container"></div>
 
+    <!-- Firebase SDK (v8 compat) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script src="firebase-sync.js"></script>
     <script src="database.js"></script>
     <script src="app.js"></script>
 </body>

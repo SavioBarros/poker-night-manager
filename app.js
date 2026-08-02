@@ -181,9 +181,15 @@ function render() {
                 <div class="empty-state-icon">🃏</div>
                 <h3>Pronto para jogar?</h3>
                 <p>Adicione o primeiro jogador para iniciar a partida!</p>
-                <button class="empty-state-cta" onclick="toggleAddPlayerBox()">♠ Adicionar Primeiro Jogador</button>
+                <div class="empty-state-actions" style="display:flex; flex-direction:column; gap:8px;">
+                    <button class="empty-state-cta" onclick="toggleAddPlayerBox()" id="emptyStateAddBtn">♠ Adicionar Primeiro Jogador</button>
+                    <button class="live-outline-btn" onclick="openJoinModal()" id="emptyStateJoinBtn">👁️ Entrar em uma Sala Ao Vivo</button>
+                </div>
             </div>
         `;
+        if (typeof isSpectator !== 'undefined' && isSpectator) {
+            document.getElementById("emptyStateAddBtn").style.display = "none";
+        }
         document.getElementById("cashTotal").innerText = formatMoney(0);
         return;
     }
@@ -232,6 +238,7 @@ function render() {
                     </div>
                 </div>
 
+                ${(typeof isSpectator !== 'undefined' && isSpectator) ? '' : `
                 <div class="player-actions">
                     <button class="rebuy-btn" onclick="openRebuy(${index})">
                         <span>+ Fichas / Rebuy</span>
@@ -240,6 +247,7 @@ function render() {
                         💀 Perdeu Tudo
                     </button>
                 </div>
+                `}
             </div>
         `;
     });
@@ -249,6 +257,48 @@ function render() {
 
     const cashTotalEl = document.getElementById("cashTotal");
     if (cashTotalEl) cashTotalEl.innerText = formatMoney(totalPot);
+
+    // ======================================
+    // SPECTATOR MODE UI UPDATES
+    // ======================================
+    const titleSubtitle = document.querySelector("#mesa .section-header small");
+    if (typeof isSpectator !== 'undefined' && isSpectator) {
+        if (titleSubtitle) titleSubtitle.innerText = "Modo Espectador - Leitura apenas";
+    } else {
+        if (titleSubtitle) titleSubtitle.innerText = "Gerencie entradas, rebuys e saídas";
+    }
+
+    const liveActionsContainer = document.querySelector(".live-actions-container");
+    if (liveActionsContainer) {
+        if (typeof isLiveHost !== 'undefined' && isLiveHost) {
+            liveActionsContainer.innerHTML = `
+                <button class="live-outline-btn active" onclick="showRoomCreatedModal(currentRoomCode)">
+                    📡 Transmitindo: Sala ${currentRoomCode}
+                </button>
+            `;
+        } else if (typeof isSpectator !== 'undefined' && isSpectator) {
+            liveActionsContainer.innerHTML = `
+                <button class="danger-outline-btn" onclick="exitSpectatorMode()">
+                    🚪 Sair da Sala
+                </button>
+            `;
+        } else {
+            liveActionsContainer.innerHTML = `
+                <button id="btnCreateRoom" class="live-outline-btn" onclick="createLiveRoom()">
+                    📡 Iniciar Sala Ao Vivo
+                </button>
+            `;
+        }
+    }
+
+    const headerActions = document.querySelector("#mesa .header-actions");
+    if (headerActions) {
+        if (typeof isSpectator !== 'undefined' && isSpectator) {
+            headerActions.style.display = 'none';
+        } else {
+            headerActions.style.display = 'flex';
+        }
+    }
 }
 
 // ======================================
@@ -1018,17 +1068,6 @@ function handleTouchMove(e) {
 }
 
 function handleTouchEnd() {
-    if (touchClone) {
-        touchClone.remove();
-        touchClone = null;
-    }
-
-    if (touchCurrentCard) {
-        touchCurrentCard.classList.remove("dragging");
-    }
-
-    document.querySelectorAll(".drag-over").forEach(el => el.classList.remove("drag-over"));
-
     if (draggedIndex !== null && dragOverIndex !== null && draggedIndex !== dragOverIndex) {
         reorderPlayers(draggedIndex, dragOverIndex);
     }

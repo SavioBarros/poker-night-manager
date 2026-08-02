@@ -1500,3 +1500,108 @@ body {
 .edit-player-btn:active {
     background: rgba(99, 102, 241, 0.25);
 }
+
+/* ====================================
+   REAL-TIME & SPECTATOR MODE
+   ==================================== */
+.live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 59, 48, 0.15);
+    color: #ff3b30;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+    border: 1px solid rgba(255, 59, 48, 0.3);
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #ff3b30;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+.spectator-dot {
+    background-color: var(--accent-emerald);
+}
+
+.live-badge:has(.spectator-dot) {
+    background: rgba(32, 164, 100, 0.15);
+    color: var(--accent-emerald);
+    border-color: rgba(32, 164, 100, 0.3);
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 48, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+}
+
+.live-actions-container {
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.live-outline-btn {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: 1px dashed var(--profit-green);
+    color: var(--profit-green);
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.live-outline-btn:active {
+    background: rgba(46, 213, 115, 0.1);
+}
+
+.live-outline-btn.active {
+    border-style: solid;
+    background: rgba(46, 213, 115, 0.1);
+}
+
+.room-code-display {
+    font-size: 32px;
+    letter-spacing: 8px;
+    font-weight: 800;
+    color: white;
+    background: var(--surface-light);
+    padding: 16px;
+    border-radius: 16px;
+    margin: 16px 0;
+    user-select: all;
+}
+
+.whatsapp-btn {
+    width: 100%;
+    padding: 14px;
+    background: #25D366;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 12px;
+    transition: background 0.2s;
+}
+
+.whatsapp-btn:active {
+    background: #1da851;
+}
+
+@media (max-width: 480px) {
+    .live-actions-container {
+        margin-bottom: 8px;
+    }
+}

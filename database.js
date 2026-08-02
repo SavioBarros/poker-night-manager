@@ -69,6 +69,11 @@ function saveDatabase() {
     localStorage.setItem(DB.SESSIONS, JSON.stringify(sessions));
     localStorage.setItem(DB.RANKING, JSON.stringify(ranking));
     localStorage.setItem(DB.SETTINGS, JSON.stringify(settings));
+
+    // Firebase Sync
+    if (typeof syncToFirebase === 'function') {
+        syncToFirebase();
+    }
 }
 
 // ================================
