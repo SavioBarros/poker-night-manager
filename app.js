@@ -1104,6 +1104,14 @@ function handleTouchEnd() {
         reorderPlayers(draggedIndex, dragOverIndex);
     }
 
+    if (touchClone && touchClone.parentNode) {
+        touchClone.parentNode.removeChild(touchClone);
+    }
+    touchClone = null;
+    
+    document.querySelectorAll(".drag-over").forEach(el => el.classList.remove("drag-over"));
+    if (touchCurrentCard) touchCurrentCard.classList.remove("dragging");
+
     touchCurrentCard = null;
     draggedIndex = null;
     dragOverIndex = null;
