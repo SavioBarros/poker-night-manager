@@ -125,12 +125,12 @@ function joinLiveRoom(code) {
                     // Atualiza estado local e re-renderiza
                     players = data.players || [];
                     currentHistory = data.currentHistory || [];
-                    renderMesa();
-                    renderHistory();
+                    if (typeof render === 'function') render();
+                    if (typeof renderHistory === 'function') renderHistory();
                     
                     // Se o app tiver fechamento aberto, atualiza também
                     if (!document.getElementById("fechamento").classList.contains("hidden")) {
-                        renderFinish();
+                        if (typeof renderFinish === 'function') renderFinish();
                     }
                 } else {
                     // Sala fechada pelo host
@@ -160,9 +160,9 @@ function exitSpectatorMode() {
     hideLiveBadge();
     
     // Recarrega banco de dados local para voltar ao estado original do celular
-    loadDatabase();
-    renderMesa();
-    renderHistory();
+    if (typeof loadDatabase === 'function') loadDatabase();
+    if (typeof render === 'function') render();
+    if (typeof renderHistory === 'function') renderHistory();
     
     showToast("Você saiu do modo espectador.", "info");
 }
