@@ -1085,3 +1085,98 @@ function reorderPlayers(fromIndex, toIndex) {
     render();
     showToast(`↕️ ${movedPlayer.name} movido na mesa`);
 }
+
+// ======================================
+// REAL-TIME MODALS & UI HELPERS
+// ======================================
+function showLiveBadge(code, spectator = false) {
+    const badge = document.getElementById("liveBadge");
+    if (badge) {
+        badge.classList.remove("hidden");
+        if (spectator) {
+            badge.innerHTML = `<span class="live-dot spectator-dot"></span> ESPECTADOR`;
+        } else {
+            badge.innerHTML = `<span class="live-dot"></span> AO VIVO`;
+        }
+    }
+    renderMesa();
+}
+
+function hideLiveBadge() {
+    const badge = document.getElementById("liveBadge");
+    if (badge) {
+        badge.classList.add("hidden");
+    }
+    renderMesa();
+}
+
+function showRoomCreatedModal(code) {
+    document.getElementById("roomCodeDisplay").innerText = code;
+    document.getElementById("liveRoomModal").classList.remove("hidden");
+}
+
+function closeLiveRoomModal() {
+    document.getElementById("liveRoomModal").classList.add("hidden");
+}
+
+function confirmCloseLiveRoom() {
+    closeLiveRoomModal();
+    if (confirm("Deseja realmente encerrar a transmissão ao vivo? Seus dados locais serão mantidos.")) {
+        closeLiveRoom();
+        showToast("Transmissão encerrada.", "info");
+    }
+}
+
+function shareCurrentRoom() {
+    if (typeof shareRoom === 'function' && currentRoomCode) {
+        shareRoom(currentRoomCode);
+    }
+}
+
+function openJoinModal() {
+    document.getElementById("joinRoomInput").value = "";
+    document.getElementById("joinRoomModal").classList.remove("hidden");
+}
+
+function closeJoinModal() {
+    document.getElementById("joinRoomModal").classList.add("hidden");
+}
+
+function submitJoinRoom() {
+    const code = document.getElementById("joinRoomInput").value;
+    if (code.length === 6) {
+        if (typeof joinLiveRoom === 'function') {
+            joinLiveRoom(code);
+        }
+    } else {
+        showToast("O código deve ter 6 caracteres.", "warning");
+    }
+}
+
+function enableSpectatorUI() {
+    // Quando entra como espectador, forçamos o render para atualizar a UI
+    renderMesa();
+}
+
+function disableSpectatorUI() {
+    renderMesa();
+}
+
+// ======================================
+// AUTO-JOIN VIA URL
+// ======================================
+window.addEventListener("DOMContentLoaded", () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const salaCode = urlParams.get('sala');
+    if (salaCode && salaCode.length === 6) {
+        setTimeout(() => {
+            if (typeof joinLiveRoom === 'function') {
+                joinLiveRoom(salaCode);
+            }
+        }, 1000); // Aguarda Firebase inicializar e banco carregar
+        
+        // Remove param from URL sem refresh
+        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.pushState({path:newUrl},'',newUrl);
+    }
+});
