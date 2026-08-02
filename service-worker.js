@@ -1,4 +1,4 @@
-const CACHE_NAME = "poker-night-v6.9";
+const CACHE_NAME = "poker-night-v6.10";
 
 const FILES_TO_CACHE = [
     "./",

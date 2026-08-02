@@ -204,6 +204,32 @@ function render() {
         const initialLetter = p.name.charAt(0).toUpperCase();
         const isOut = p.status === "Sem fichas";
 
+        let statusHtml = '';
+        if (sessionClosed) {
+            statusHtml = `<span class="player-status-tag" style="background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1);">🏁 Finalizado</span>`;
+        } else {
+            statusHtml = `<span class="player-status-tag ${isOut ? 'out' : 'playing'}">
+                ${isOut ? '💀 Sem fichas' : '🟢 Jogando'}
+            </span>`;
+        }
+
+        let investedLabel = "Comprado";
+        let investedAmountHtml = formatMoney(p.bought);
+        
+        if (sessionClosed && p.finalAmount !== undefined && p.finalAmount !== null) {
+            const result = p.finalAmount - p.bought;
+            if (result > 0) {
+                investedLabel = "Lucro";
+                investedAmountHtml = `<span style="color: var(--profit-green)">+${formatMoney(result)}</span>`;
+            } else if (result < 0) {
+                investedLabel = "Perda";
+                investedAmountHtml = `<span style="color: var(--loss-red)">-${formatMoney(Math.abs(result))}</span>`;
+            } else {
+                investedLabel = "Empate";
+                investedAmountHtml = `<span style="color: var(--text-muted)">R$ 0,00</span>`;
+            }
+        }
+
         box.innerHTML += `
             <div class="player-card draggable-card" 
                  draggable="true" 
@@ -221,13 +247,11 @@ function render() {
                         <div class="player-avatar">${initialLetter}</div>
                         <div class="player-details">
                             <div class="player-name">${p.name}</div>
-                            <span class="player-status-tag ${isOut ? 'out' : 'playing'}">
-                                ${isOut ? '💀 Sem fichas' : '🟢 Jogando'}
-                            </span>
+                            ${statusHtml}
                         </div>
                         <div class="player-invested">
-                            <span class="invested-label">Comprado</span>
-                            <span class="invested-amount">${formatMoney(p.bought)}</span>
+                            <span class="invested-label">${investedLabel}</span>
+                            <span class="invested-amount">${investedAmountHtml}</span>
                         </div>
                     </div>
 
