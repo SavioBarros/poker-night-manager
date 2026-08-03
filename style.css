@@ -114,7 +114,7 @@ body {
 .app {
     width: 100%;
     max-width: 500px;
-    padding: max(10px, env(safe-area-inset-top)) 14px max(110px, calc(100px + env(safe-area-inset-bottom))) 14px;
+    padding: max(10px, env(safe-area-inset-top)) 14px max(140px, calc(130px + env(safe-area-inset-bottom))) 14px;
     min-height: 100vh;
     min-height: 100dvh;
     display: flex;
@@ -260,8 +260,9 @@ body {
 .section-header {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin-bottom: 14px;
+    gap: 12px;
+    margin-bottom: 20px;
+    margin-top: 8px;
 }
 
 .header-actions {
@@ -286,7 +287,7 @@ body {
     justify-content: center;
     gap: 6px;
     transition: all var(--tr-fast);
-    min-height: 46px;
+    min-height: 52px;
 }
 
 .secondary-header-btn:active {
@@ -360,7 +361,7 @@ body {
     cursor: pointer;
     box-shadow: 0 4px 14px var(--accent-glow);
     transition: transform var(--tr-fast), box-shadow var(--tr-fast);
-    min-height: 46px;
+    min-height: 52px;
 }
 
 .primary-btn:active {
@@ -518,7 +519,7 @@ body {
     backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border-color);
     border-radius: 18px;
-    padding: 14px;
+    padding: 18px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
     transition: transform var(--tr-fast), border-color var(--tr-fast);
 }
@@ -587,7 +588,7 @@ body {
 
 .invested-label {
     display: block;
-    font-size: 10px;
+    font-size: 11px;
     color: var(--text-muted);
     font-weight: 600;
     text-transform: uppercase;
@@ -612,7 +613,7 @@ body {
 }
 
 .info-item span {
-    font-size: 10px;
+    font-size: 11px;
     color: var(--text-muted);
     text-transform: uppercase;
     font-weight: 600;
@@ -620,7 +621,7 @@ body {
 
 .info-item strong {
     display: block;
-    font-size: 14px;
+    font-size: 15px;
     margin-top: 2px;
     color: var(--text-main);
 }
@@ -656,7 +657,7 @@ body {
     gap: 6px;
     box-shadow: 0 4px 12px var(--accent-glow);
     transition: transform var(--tr-fast);
-    min-height: 44px;
+    min-height: 48px;
 }
 
 .rebuy-btn:active {
@@ -673,7 +674,7 @@ body {
     font-size: 13px;
     cursor: pointer;
     transition: background var(--tr-fast);
-    min-height: 44px;
+    min-height: 48px;
 }
 
 .lose-btn:active {
