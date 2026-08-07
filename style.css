@@ -1343,25 +1343,53 @@ body {
     gap: 8px;
 }
 
+.edit-player-btn,
+.danger-btn,
+.cashout-btn {
+    width: 100%;
+    border-radius: 12px;
+    padding: 14px;
+    font-weight: 600;
+    font-size: 14px;
+    font-family: var(--font-heading);
+    cursor: pointer;
+    transition: all var(--tr-fast);
+}
+
+.edit-player-btn {
+    background: rgba(148, 163, 184, 0.15);
+    color: var(--text-main);
+    border: 1px solid rgba(148, 163, 184, 0.3);
+}
+.edit-player-btn:hover { background: rgba(148, 163, 184, 0.25); }
+
 .danger-btn {
     background: rgba(239, 68, 68, 0.15);
     color: var(--loss-red);
     border: 1px solid rgba(239, 68, 68, 0.3);
-    border-radius: 12px;
-    padding: 12px;
-    font-weight: 600;
-    font-size: 13px;
-    cursor: pointer;
 }
+.danger-btn:hover { background: rgba(239, 68, 68, 0.25); }
+
+.cashout-btn {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--profit-green);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.cashout-btn:hover { background: rgba(16, 185, 129, 0.25); }
 
 .remove-btn {
+    width: 100%;
     background: transparent;
     color: var(--text-muted);
     border: none;
-    padding: 8px;
-    font-size: 12px;
+    padding: 12px;
+    font-size: 13px;
+    font-family: var(--font-body);
+    font-weight: 500;
     cursor: pointer;
+    transition: color var(--tr-fast);
 }
+.remove-btn:hover { color: var(--loss-red); }
 
 .modal-footer {
     margin-top: 16px;
