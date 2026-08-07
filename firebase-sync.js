@@ -11,6 +11,8 @@ const firebaseConfig = {
 
 let db = null;
 let currentRoomCode = null;
+let currentHostId = null;
+let currentHostCode = null;
 let isSpectator = false;
 let isLiveHost = false;
 let roomRef = null;
@@ -37,6 +39,19 @@ function generateRoomCode() {
     return result;
 }
 
+function generateHostCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = 'H-';
+    for (let i = 0; i < 8; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
+function generateHostId() {
+    return 'host_' + Math.random().toString(36).substr(2, 9);
+}
+
 // ======================================
 // HOST MODE (Anfitrião)
 // ======================================
@@ -44,6 +59,8 @@ function createLiveRoom() {
     if (!db) initFirebase();
     
     currentRoomCode = generateRoomCode();
+    currentHostCode = generateHostCode();
+    currentHostId = generateHostId();
     isLiveHost = true;
     isSpectator = false;
     
@@ -56,7 +73,7 @@ function createLiveRoom() {
     syncToFirebase();
     
     // Mostra modal com o código
-    showRoomCreatedModal(currentRoomCode);
+    showRoomCreatedModal(currentRoomCode, currentHostCode);
 }
 
 function syncToFirebase() {
@@ -67,6 +84,8 @@ function syncToFirebase() {
         players: players,
         currentHistory: currentHistory,
         sessionClosed: (typeof sessionClosed !== 'undefined') ? sessionClosed : false,
+        hostId: currentHostId,
+        hostCode: currentHostCode,
         timestamp: firebase.database.ServerValue.TIMESTAMP
     };
     
@@ -86,6 +105,8 @@ function closeLiveRoom() {
 function disconnectFromLiveRoom() {
     isLiveHost = false;
     currentRoomCode = null;
+    currentHostId = null;
+    currentHostCode = null;
     roomRef = null;
     hideLiveBadge();
 }
@@ -127,6 +148,14 @@ function joinLiveRoom(code) {
             roomRef.on('value', (snap) => {
                 const data = snap.val();
                 if (data) {
+                    // Verifica se fomos derrubados de host para espectador
+                    if (isLiveHost && data.hostId && data.hostId !== currentHostId) {
+                        showToast("Outra pessoa assumiu como host da mesa.", "info");
+                        isLiveHost = false;
+                        isSpectator = true;
+                        enableSpectatorUI();
+                    }
+
                     // Atualiza estado local e re-renderiza
                     players = data.players || [];
                     currentHistory = data.currentHistory || [];
@@ -173,6 +202,59 @@ function exitSpectatorMode() {
     if (typeof renderHistory === 'function') renderHistory();
     
     showToast("Você saiu do modo espectador.", "info");
+}
+
+function assumeHost(hostCode) {
+    if (!db) initFirebase();
+    if (!db) return;
+
+    const cleanCode = hostCode.toUpperCase().trim();
+    if (!cleanCode) return;
+
+    // A lógica de assumir host é: procuramos na raiz /rooms se existe alguma sala com esse hostCode
+    db.ref('rooms').orderByChild('hostCode').equalTo(cleanCode).once('value').then(snap => {
+        if (snap.exists()) {
+            const rooms = snap.val();
+            const roomCode = Object.keys(rooms)[0];
+            const roomData = rooms[roomCode];
+
+            // Pega o estado da sala
+            players = roomData.players || [];
+            currentHistory = roomData.currentHistory || [];
+            if (typeof sessionClosed !== 'undefined') {
+                sessionClosed = roomData.sessionClosed || false;
+            }
+
+            // Atribui os dados do host
+            currentRoomCode = roomCode;
+            currentHostCode = roomData.hostCode;
+            currentHostId = generateHostId(); // novo host ID
+            isLiveHost = true;
+            isSpectator = false;
+
+            roomRef = db.ref('rooms/' + currentRoomCode);
+            
+            // Força um sync imediato com o NOVO hostId.
+            // O host antigo, ao ver o on('value') com hostId diferente do dele, vai cair para espectador.
+            syncToFirebase();
+
+            // Salva estado local assumido
+            saveDatabase();
+            
+            closeJoinModal();
+            showLiveBadge(currentRoomCode);
+            render();
+            renderHistory();
+            
+            showToast("Você assumiu a mesa como anfitrião!", "success");
+
+        } else {
+            showToast("Código de host inválido ou sala encerrada.", "error");
+        }
+    }).catch(err => {
+        console.error(err);
+        showToast("Erro ao buscar código de host.", "error");
+    });
 }
 
 // ======================================

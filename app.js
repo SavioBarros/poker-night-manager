@@ -165,6 +165,7 @@ function render() {
 
     box.innerHTML = "";
     let totalPot = 0;
+    let cashoutTotal = 0;
 
     // Atualiza contador no header
     const countBadge = document.getElementById("playerCountBadge");
@@ -195,7 +196,7 @@ function render() {
         if (typeof isSpectator !== 'undefined' && isSpectator) {
             document.getElementById("emptyStateAddBtn").style.display = "none";
         }
-        document.getElementById("cashTotal").innerText = formatMoney(0);
+        updateCashDisplay(0, 0);
         return;
     }
 
@@ -203,6 +204,11 @@ function render() {
         totalPot += p.bought;
         const initialLetter = p.name.charAt(0).toUpperCase();
         const isOut = p.status === "Sem fichas";
+        const isCashedOut = p.status === "Finalizado";
+        
+        if (isCashedOut && p.finalAmount !== null && p.finalAmount !== undefined) {
+            cashoutTotal += p.finalAmount;
+        }
 
         let statusHtml = '';
         if (sessionClosed) {
@@ -216,7 +222,7 @@ function render() {
         let investedLabel = "Comprado";
         let investedAmountHtml = formatMoney(p.bought);
         
-        if (sessionClosed && p.finalAmount !== undefined && p.finalAmount !== null) {
+        if ((sessionClosed || isCashedOut) && p.finalAmount !== undefined && p.finalAmount !== null) {
             const result = p.finalAmount - p.bought;
             if (result > 0) {
                 investedLabel = "Lucro";
@@ -230,11 +236,16 @@ function render() {
             }
         }
 
+        const cardOpacity = isCashedOut ? 'opacity: 0.6; border-color: var(--profit-green); position: relative;' : 'position: relative;';
+        const cardClick = isCashedOut ? '' : `onclick="openRebuy(${index})"`;
+
         box.innerHTML += `
             <div class="player-card draggable-card" 
                  draggable="true" 
+                 style="${cardOpacity}"
                  data-index="${index}"
                  id="player-card-${index}">
+                ${isCashedOut ? '<div style="position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.15); border-radius: inherit; pointer-events: none;"></div>' : ''}
                 <div class="drag-handle" title="Arraste para reordenar">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/>
@@ -242,12 +253,12 @@ function render() {
                         <circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/>
                     </svg>
                 </div>
-                <div class="player-card-content" onclick="openRebuy(${index})">
+                <div class="player-card-content" ${cardClick}>
                     <div class="player-header">
                         <div class="player-avatar">${initialLetter}</div>
                         <div class="player-details">
                             <div class="player-name">${p.name}</div>
-                            ${statusHtml}
+                            ${isCashedOut ? `<span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(16, 185, 129, 0.15); color: var(--profit-green); font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.3);">✅ Saiu com ${formatMoney(p.finalAmount)}</span>` : statusHtml}
                         </div>
                         <div class="player-invested">
                             <span class="invested-label">${investedLabel}</span>
@@ -267,7 +278,7 @@ function render() {
                     </div>
                 </div>
 
-                ${(typeof isSpectator !== 'undefined' && isSpectator) ? '' : `
+                ${(typeof isSpectator !== 'undefined' && isSpectator) || isCashedOut ? '' : `
                 <div class="player-actions">
                     <button class="rebuy-btn" onclick="openRebuy(${index})">
                         <span>+ Fichas / Rebuy</span>
@@ -284,8 +295,7 @@ function render() {
     // Bind drag events after rendering
     initDragAndDrop();
 
-    const cashTotalEl = document.getElementById("cashTotal");
-    if (cashTotalEl) cashTotalEl.innerText = formatMoney(totalPot);
+    updateCashDisplay(totalPot, cashoutTotal);
 
     // ======================================
     // SPECTATOR MODE UI UPDATES
@@ -341,10 +351,15 @@ function openRebuy(index) {
     
     selectedPlayer = index;
     const player = players[index];
-    if (!player) return;
+    if (!player || player.status === "Finalizado") return;
 
     document.getElementById("modalPlayer").innerText = player.name;
     document.getElementById("modalPlayerAvatar").innerText = player.name.charAt(0).toUpperCase();
+
+    const cashoutSection = document.getElementById("cashoutSection");
+    if (cashoutSection) cashoutSection.classList.add("hidden");
+    const cashoutInput = document.getElementById("cashoutAmountInput");
+    if (cashoutInput) cashoutInput.value = "";
 
     const modal = document.getElementById("rebuyModal");
     if (modal) modal.classList.remove("hidden");
@@ -425,6 +440,60 @@ function closeModal() {
     const modal = document.getElementById("rebuyModal");
     if (modal) modal.classList.add("hidden");
     selectedPlayer = null;
+}
+
+function showCashoutInput() {
+    const section = document.getElementById("cashoutSection");
+    if (section) section.classList.remove("hidden");
+    const input = document.getElementById("cashoutAmountInput");
+    if (input) input.focus();
+}
+
+function confirmCashout() {
+    const input = document.getElementById("cashoutAmountInput");
+    const val = Number(input.value);
+    if (val >= 0 && input.value !== "") {
+        if (selectedPlayer === null || !players[selectedPlayer]) return;
+        haptic(50);
+        
+        let player = players[selectedPlayer];
+        player.finalAmount = val;
+        player.result = val - player.bought;
+        player.status = "Finalizado";
+        
+        addHistory({
+            type: "cashout",
+            player: player.name,
+            value: val
+        });
+        
+        saveDatabase();
+        closeModal();
+        render();
+        showToast(`✅ ${player.name} fechou com ${formatMoney(val)}`);
+    } else {
+        showToast("⚠️ Digite um valor válido");
+    }
+}
+
+function updateCashDisplay(totalPot, cashoutTotal = 0) {
+    const cashTotalEl = document.getElementById("cashTotal");
+    const cashSecondaryEl = document.getElementById("cashSecondary");
+    
+    if (!cashTotalEl) return;
+    
+    if (cashoutTotal > 0) {
+        cashTotalEl.innerText = formatMoney(totalPot - cashoutTotal);
+        if (cashSecondaryEl) {
+            cashSecondaryEl.style.display = 'block';
+            cashSecondaryEl.innerText = `Total s/ saídas: ${formatMoney(totalPot)}`;
+        }
+    } else {
+        cashTotalEl.innerText = formatMoney(totalPot);
+        if (cashSecondaryEl) {
+            cashSecondaryEl.style.display = 'none';
+        }
+    }
 }
 
 // ======================================
@@ -559,16 +628,20 @@ function renderFinish() {
 
     players.forEach((p, index) => {
         let resultTag = getResultTagHtml(p);
+        const isLocked = p.status === "Finalizado" ? 'opacity: 0.6; pointer-events: none; position: relative;' : 'position: relative;';
+        const badge = p.status === "Finalizado" ? '<div style="position: absolute; top: 8px; right: 8px; font-size: 10px; font-weight: 600; color: var(--profit-green); background: rgba(16, 185, 129, 0.15); padding: 2px 8px; border-radius: 10px;">✅ Cashout</div>' : '';
 
         box.innerHTML += `
-            <div class="finish-card">
+            <div class="finish-card" style="${isLocked}">
+                ${badge}
                 <div class="finish-player-name">${p.name}</div>
                 <div class="finish-bought">${formatMoney(p.bought)}</div>
                 <div class="finish-input-wrapper">
                     <input type="number" 
                            value="${p.finalAmount === null || p.finalAmount === undefined ? '' : p.finalAmount}" 
                            placeholder="R$ Fichas" 
-                           oninput="setFinalAmount(${index}, this.value)">
+                           oninput="setFinalAmount(${index}, this.value)"
+                           ${p.status === "Finalizado" ? 'disabled' : ''}>
                 </div>
                 <div id="finish-result-tag-${index}">${resultTag}</div>
             </div>
@@ -821,25 +894,77 @@ function renderHistory() {
         return;
     }
 
-    sessions.slice().reverse().forEach(s => {
+    sessions.slice().reverse().forEach((s, reversedIndex) => {
+        const originalIndex = sessions.length - 1 - reversedIndex;
         let playersSummary = s.players.map(p => {
             const res = p.result;
             const style = res > 0 ? "color: var(--profit-green)" : res < 0 ? "color: var(--loss-red)" : "color: var(--text-muted)";
-            return `<span>${p.name}: <b style="${style}">${res > 0 ? '+' : ''}${formatMoney(res)}</b></span>`;
-        }).join(" • ");
+            return `<div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--glass-line); font-size: 13px;">
+                        <span style="font-weight: 600; color: var(--text-primary); font-family: var(--font-heading);">${p.name}</span>
+                        <span style="font-family: var(--font-heading); font-weight: 700; ${style}">${res > 0 ? '+' : ''}${formatMoney(res)}</span>
+                    </div>`;
+        }).join("");
 
         box.innerHTML += `
-            <div class="player-card">
+            <div class="player-card" style="position: relative;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="font-family: var(--font-heading); font-size: 16px;">🗓 ${s.date}</h3>
-                    <span style="font-family: var(--font-heading); color: var(--accent-emerald); font-weight: 700;">${formatMoney(s.total)}</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-family: var(--font-heading); color: var(--accent-emerald); font-weight: 700;">${formatMoney(s.total)}</span>
+                        <button onclick="deleteSession('${s.date}')" style="background: transparent; border: 1px solid rgba(239, 68, 68, 0.3); color: var(--loss-red); font-size: 14px; padding: 4px 8px; border-radius: var(--r-sm); cursor: pointer; transition: all 0.2s ease;">🗑️</button>
+                    </div>
                 </div>
-                <div style="font-size: 12px; margin-top: 10px; color: var(--text-muted); line-height: 1.5;">
+                <button onclick="toggleSessionDetails(${originalIndex})" style="display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; margin-top: 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-line); border-radius: var(--r-sm); color: var(--text-muted); font-size: 12px; cursor: pointer;">
+                    Ver Detalhes ▾
+                </button>
+                <div id="session-details-${originalIndex}" style="display: none; margin-top: 10px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px;">
+                    <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px;">Jogadores (Lucro/Perda):</div>
                     ${playersSummary}
                 </div>
             </div>
         `;
     });
+}
+
+function toggleSessionDetails(index) {
+    const el = document.getElementById(`session-details-${index}`);
+    if (el) {
+        el.style.display = el.style.display === "none" ? "block" : "none";
+    }
+}
+
+function deleteSession(dateStr) {
+    if (typeof isSpectator !== 'undefined' && isSpectator) {
+        showToast("Ação não permitida para espectadores.", "info");
+        return;
+    }
+    
+    if (confirm("Tem certeza que deseja apagar os registros do dia " + dateStr + "? O ranking será recalculado.")) {
+        sessions = sessions.filter(s => s.date !== dateStr);
+        saveDatabase();
+        rebuildRanking();
+        renderHistory();
+        renderRanking();
+        showToast("Sessão excluída com sucesso.");
+    }
+}
+
+function rebuildRanking() {
+    ranking = {};
+    sessions.forEach(s => {
+        s.players.forEach(p => {
+            if (!ranking[p.name]) {
+                ranking[p.name] = { profit: 0, sessions: 0, wins: 0, losses: 0, totalRebuys: 0 };
+            }
+            const r = ranking[p.name];
+            r.profit += p.result;
+            r.sessions++;
+            r.totalRebuys += (p.rebuyCount || 0);
+            if (p.result > 0) r.wins++;
+            else if (p.result < 0) r.losses++;
+        });
+    });
+    saveDatabase();
 }
 
 // ======================================
@@ -1178,8 +1303,14 @@ function hideLiveBadge() {
     render();
 }
 
-function showRoomCreatedModal(code) {
+function showRoomCreatedModal(code, hostCode = "") {
     document.getElementById("roomCodeDisplay").innerText = code;
+    
+    const hostCodeSection = document.getElementById("hostCodeDisplay");
+    if (hostCodeSection && hostCode) {
+        hostCodeSection.innerText = hostCode;
+    }
+    
     document.getElementById("liveRoomModal").classList.remove("hidden");
 }
 
@@ -1203,11 +1334,54 @@ function shareCurrentRoom() {
 
 function openJoinModal() {
     document.getElementById("joinRoomInput").value = "";
+    const hostInput = document.getElementById("joinHostCodeInput");
+    if (hostInput) hostInput.value = "";
+    switchJoinTab('spectator');
     document.getElementById("joinRoomModal").classList.remove("hidden");
 }
 
 function closeJoinModal() {
     document.getElementById("joinRoomModal").classList.add("hidden");
+}
+
+function switchJoinTab(tab) {
+    document.getElementById("joinTab-spectator").classList.remove("active");
+    document.getElementById("joinTab-host").classList.remove("active");
+    document.getElementById("joinTab-spectator").style.background = "transparent";
+    document.getElementById("joinTab-host").style.background = "transparent";
+    document.getElementById("joinTab-spectator").style.color = "var(--text-muted)";
+    document.getElementById("joinTab-host").style.color = "var(--text-muted)";
+    document.getElementById("joinTab-spectator").style.boxShadow = "none";
+    document.getElementById("joinTab-host").style.boxShadow = "none";
+    
+    document.getElementById("joinContent-spectator").style.display = "none";
+    document.getElementById("joinContent-host").style.display = "none";
+
+    const activeTab = document.getElementById(`joinTab-${tab}`);
+    if (activeTab) {
+        activeTab.classList.add("active");
+        activeTab.style.background = "var(--accent-emerald)";
+        activeTab.style.color = "#fff";
+        activeTab.style.boxShadow = "0 2px 8px rgba(16, 185, 129, 0.3)";
+    }
+    
+    const activeContent = document.getElementById(`joinContent-${tab}`);
+    if (activeContent) {
+        activeContent.style.display = "block";
+    }
+}
+
+function submitAssumeHost() {
+    const inputEl = document.getElementById("joinHostCodeInput");
+    const code = inputEl ? inputEl.value.trim().toUpperCase() : "";
+    
+    if (code.startsWith("H-") && code.length >= 8) {
+        if (typeof assumeHost === 'function') {
+            assumeHost(code);
+        }
+    } else {
+        showToast("Código de host inválido.");
+    }
 }
 
 function submitJoinRoom() {
