@@ -1806,40 +1806,53 @@ body {
 .cashout-input-wrapper {
     display: flex;
     align-items: center;
-    gap: 8px;
-    background: var(--bg-sunken);
-    border: 1px solid var(--glass-line);
-    border-radius: var(--r-sm);
-    padding: 5px 5px 5px 14px;
-    margin-top: 10px;
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 6px 6px 6px 16px;
+    margin-top: 12px;
 }
 
 .cashout-input-wrapper input {
     background: transparent;
     border: none;
-    min-height: 44px;
+    min-height: 40px;
     padding: 0;
     flex: 1;
+    min-width: 0; /* Prevents overflow */
     color: var(--text-main);
     font-size: 18px;
     font-weight: 600;
+    outline: none;
+}
+
+.cashout-input-wrapper input:focus {
+    outline: none;
 }
 
 .cashout-input-wrapper .currency-prefix {
     color: var(--text-muted);
     font-weight: 600;
+    font-size: 16px;
 }
 
 .cashout-confirm-btn {
     background: var(--profit-green);
     color: #fff;
     border: none;
-    border-radius: var(--r-sm);
-    padding: 10px 16px;
-    font-weight: 600;
-    font-size: 13px;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    font-size: 14px;
     cursor: pointer;
     white-space: nowrap;
+    transition: background var(--tr-fast);
+}
+
+.cashout-confirm-btn:hover {
+    background: #0ea5e9; /* matching emerald or just lighter green */
 }
 
 .cashout-section {
