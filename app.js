@@ -900,7 +900,7 @@ function renderHistory() {
             const res = p.result;
             const style = res > 0 ? "color: var(--profit-green)" : res < 0 ? "color: var(--loss-red)" : "color: var(--text-muted)";
             return `<div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--glass-line); font-size: 13px;">
-                        <span style="font-weight: 600; color: var(--text-primary); font-family: var(--font-heading);">${p.name}</span>
+                        <span style="font-weight: 600; color: var(--text-main); font-family: var(--font-heading);">${p.name} (Comprou: ${formatMoney(p.bought)})</span>
                         <span style="font-family: var(--font-heading); font-weight: 700; ${style}">${res > 0 ? '+' : ''}${formatMoney(res)}</span>
                     </div>`;
         }).join("");
