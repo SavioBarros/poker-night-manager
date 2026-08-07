@@ -1069,6 +1069,13 @@ function setTheme(themeName, showNotification = true) {
     settings.theme = themeName;
     saveDatabase();
 
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+        if (themeName === 'emerald') metaThemeColor.setAttribute('content', '#040d08');
+        else if (themeName === 'royal') metaThemeColor.setAttribute('content', '#070a14');
+        else if (themeName === 'gold') metaThemeColor.setAttribute('content', '#0a0804');
+    }
+
     // Atualiza botões ativos no menu config
     document.querySelectorAll(".theme-btn").forEach(btn => {
         btn.classList.remove("active");
