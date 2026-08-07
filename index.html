@@ -29,12 +29,10 @@
                 </div>
             </div>
             
-            <div class="cash-card">
+            <div class="cash-card cash-card-dual">
                 <span class="cash-label">EM JOGO NA MESA</span>
-                <div style="display: flex; flex-direction: column; align-items: flex-end;">
-                    <strong id="cashTotal">R$ 0</strong>
-                    <span id="cashSecondary" style="display:none; font-size:11px; color:var(--text-muted); font-weight:500; margin-top: 2px;"></span>
-                </div>
+                <strong id="cashTotal" class="cash-primary">R$ 0</strong>
+                <span id="cashSecondary" class="cash-secondary" style="display: none; font-size: 11px; color: var(--text-muted); font-weight: 500;">Total s/ saídas: R$ 0</span>
                 <span class="player-count-badge" id="playerCountBadge">0 jogadores</span>
             </div>
         </header>
@@ -301,23 +299,21 @@
                     <button class="edit-player-btn" onclick="openEditPlayer(selectedPlayer)">
                         ✏️ Editar Nome do Jogador
                     </button>
-                    <button class="primary-full-btn" style="background: var(--profit-green); margin-top: 8px;" onclick="showCashoutInput()">
-                        💵 Cashout — Sair da Mesa
-                    </button>
-                    <div id="cashoutSection" class="hidden" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--glass-line);">
-                        <p class="section-tag" style="margin-bottom: 6px;">Valor final em fichas deste jogador:</p>
-                        <div style="display: flex; align-items: center; gap: 8px; background: var(--bg-sunken); border: 1px solid var(--glass-line); border-radius: var(--r-sm); padding: 5px 5px 5px 14px;">
-                            <span style="color: var(--text-muted); font-weight: 600;">R$</span>
-                            <input id="cashoutAmountInput" type="number" placeholder="Ex: 150" min="0" style="background: transparent; border: none; min-height: 44px; padding: 0; flex: 1; color: var(--text-primary); font-size: 18px; font-weight: 600;">
-                            <button onclick="confirmCashout()" style="background: var(--profit-green); color: #fff; border: none; border-radius: var(--r-sm); padding: 10px 16px; font-weight: 600; font-size: 13px; cursor: pointer; white-space: nowrap;">Confirmar</button>
-                        </div>
-                    </div>
                     <button class="danger-btn" onclick="losePlayer(selectedPlayer)">
                         💀 Perdeu Tudo (Ficou sem fichas)
                     </button>
                     <button class="remove-btn" onclick="removePlayerWithRefund(selectedPlayer)">
                         ❌ Remover da Mesa (Reembolso Buy-in)
                     </button>
+                </div>
+                
+                <div id="cashoutSection" class="cashout-section">
+                    <p class="section-tag" style="color: var(--profit-green);">Vai sair agora? (Cashout)</p>
+                    <div class="cashout-input-wrapper">
+                        <span class="currency-prefix">R$</span>
+                        <input id="cashoutAmountInput" type="number" placeholder="Fichas finais..." min="0">
+                        <button class="cashout-confirm-btn" onclick="confirmCashout()">Finalizar</button>
+                    </div>
                 </div>
             </div>
 
@@ -395,11 +391,10 @@
                     📲 Compartilhar no WhatsApp
                 </button>
 
-                <!-- HOST CODE SECTION -->
-                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--glass-line);">
-                    <p class="section-tag">👑 Código de Anfitrião (secreto)</p>
-                    <div id="hostCodeDisplay" style="font-family: var(--font-heading); font-size: 22px; font-weight: 800; letter-spacing: 3px; text-align: center; padding: 12px 20px; background: rgba(245, 158, 11, 0.1); border: 2px dashed rgba(245, 158, 11, 0.4); border-radius: var(--r-sm); color: #f59e0b; margin: 8px 0;">------</div>
-                    <p style="font-size: 11px; color: #f59e0b; text-align: center; margin-top: 6px; opacity: 0.8;">⚠️ Compartilhe apenas com quem vai assumir a mesa</p>
+                <div class="host-code-section">
+                    <p class="section-tag" style="color: #f59e0b;">👑 Código para transferir Host</p>
+                    <div class="host-code-display" id="hostCodeDisplay">H-XXXXXX</div>
+                    <div class="host-code-warning">Passe este código apenas para quem for assumir a gerência da mesa.</div>
                 </div>
 
                 <div class="modal-danger-actions" style="margin-top: 24px;">
@@ -423,29 +418,25 @@
                 </div>
             </div>
             <div class="modal-body">
-                <!-- TABS -->
-                <div style="display: flex; gap: 0; margin-bottom: 16px; background: var(--bg-sunken); border-radius: var(--r-sm); padding: 3px; border: 1px solid var(--glass-line);">
-                    <button class="join-tab-btn active" id="joinTab-spectator" onclick="switchJoinTab('spectator')" style="flex: 1; padding: 10px 12px; border: none; background: var(--accent-emerald); color: #fff; font-family: var(--font-body); font-size: 13px; font-weight: 600; border-radius: calc(var(--r-sm) - 2px); cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">👁️ Espectador</button>
-                    <button class="join-tab-btn" id="joinTab-host" onclick="switchJoinTab('host')" style="flex: 1; padding: 10px 12px; border: none; background: transparent; color: var(--text-muted); font-family: var(--font-body); font-size: 13px; font-weight: 600; border-radius: calc(var(--r-sm) - 2px); cursor: pointer; transition: all 0.2s ease;">👑 Assumir Host</button>
+                <div class="join-tabs">
+                    <button id="joinTab-spectator" class="join-tab-btn active" onclick="switchJoinTab('spectator')">👁️ Espectador</button>
+                    <button id="joinTab-host" class="join-tab-btn" onclick="switchJoinTab('host')">👑 Assumir Host</button>
                 </div>
-
-                <!-- TAB: Spectator -->
-                <div class="join-tab-content active" id="joinContent-spectator" style="display: block;">
+                
+                <div id="joinContent-spectator" class="join-tab-content active">
                     <div class="input-group" style="margin-bottom: 16px;">
                         <label>Código da Sala (6 letras/números)</label>
                         <input id="joinRoomInput" placeholder="EX: A7X3K2" style="text-transform: uppercase; font-size: 20px; text-align: center; letter-spacing: 4px; font-weight: bold;">
                     </div>
-                    <button class="primary-full-btn" onclick="submitJoinRoom()">Conectar como Espectador</button>
+                    <button class="primary-full-btn" onclick="submitJoinRoom()">Conectar para Assistir</button>
                 </div>
-
-                <!-- TAB: Host -->
-                <div class="join-tab-content" id="joinContent-host" style="display: none;">
+                
+                <div id="joinContent-host" class="join-tab-content">
                     <div class="input-group" style="margin-bottom: 16px;">
-                        <label>Código de Host (fornecido pelo anfitrião)</label>
-                        <input id="joinHostCodeInput" placeholder="EX: H-A7X3K2J9" style="text-transform: uppercase; font-size: 18px !important; text-align: center; letter-spacing: 3px; font-weight: bold !important;">
+                        <label style="color: #f59e0b;">Código de Host (Inicia com H-)</label>
+                        <input id="joinHostCodeInput" class="host-code-input" placeholder="EX: H-A7X3K2">
                     </div>
-                    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">Ao assumir como host, você terá controle total da mesa. O host anterior será desconectado.</p>
-                    <button class="primary-full-btn" style="background: #f59e0b;" onclick="submitAssumeHost()">👑 Assumir Controle da Mesa</button>
+                    <button class="primary-full-btn" style="background: var(--gold-crown);" onclick="submitAssumeHost()">Assumir Controle</button>
                 </div>
             </div>
         </div>
